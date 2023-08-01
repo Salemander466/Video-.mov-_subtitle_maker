@@ -7,6 +7,9 @@ from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 from googleapiclient.http import MediaIoBaseDownload
 
+import quickstart.quickstart
+
+
 def download_file(real_file_id):
     """Downloads a file
     Args:
@@ -16,7 +19,11 @@ def download_file(real_file_id):
     Load pre-authorized user credentials from the environment.
     for guides on implementing OAuth2 for the application.
     """
-    creds, _ = google.auth.default()
+    creds = quickstart.quickstart.get_creds()
+
+    if creds is None:
+        print("could not get credentials")
+        return
 
     try:
         # create drive api client
@@ -38,7 +45,3 @@ def download_file(real_file_id):
         file = None
 
     return file.getvalue()
-
-
-if __name__ == '__main__':
-    download_file(real_file_id='1KuPmvGq8yoYgbfW74OENMCB5H0n_2Jm9')
