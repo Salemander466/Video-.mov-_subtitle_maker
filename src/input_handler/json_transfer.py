@@ -22,15 +22,35 @@ def is_video(filename):
             return True
     return False
 
-
+'''
+TODO - finish __repr__() method
+'''
 class Directory:
     uploaded = False
 
     def __init__(self, id, name, directories=[], clips=[]):
-        self.directories = directories
-        self.clips = clips
         self.id = id
         self.name = name
+        self.directories = directories
+        self.clips = clips
+
+
+
+    def __repr__(self):
+        str = ""
+
+        if len(self.directories) == 0:
+            return F'DIR(name: {self.name} directories: [], clips: {self.clips})'
+
+
+
+        for directory in self.directories:
+            str += "\__" +directory + "\n"
+            str += "|" + "\n"
+
+
+        return str
+        return F'DIR(name: {self.name} directories: {self.directories}, clips: {self.clips})'
 
     def add_dir(self, dir):
         self.directories.append(dir)
@@ -49,9 +69,8 @@ class Clip:
         self.edited = edited
         self.uploaded = uploaded
 
-    def __str__(self):
-        return F'("id": {self.id}, "name": {self.name}, "edited": {self.edited}, "uploaded": {self.uploaded})'
-
+    def __repr__(self):
+        return F'name: {self.name} id:({self.id}) '
     def set_edited(self, edited):
         self.edited = edited
 
@@ -66,6 +85,7 @@ class DirectoryEncoder(json.JSONEncoder):
             directories = obj.directories
             clips = obj.clips
             json_clips = []
+            json_dirs = []
 
             for clip in clips:
                 json_clips.append(self.default(clip))
@@ -74,16 +94,42 @@ class DirectoryEncoder(json.JSONEncoder):
                 return {"id": obj.id, "name": obj.name, "directories": [], "clips": json_clips}
 
             for directory in directories:
-                return {"id": obj.id, "name": obj.name, "directories": [self.default(directory)], "clips": json_clips}
+                json_dirs.append(self.default(directory))
+            return {"id": obj.id, "name": obj.name, "directories": json_dirs, "clips": json_clips}
 
         if isinstance(obj, Clip):
             return {"id": obj.id, "name": obj.name, "edited": obj.edited, "uploaded": obj.uploaded}
 
         return super().default
 
-class DirectoryDecoder:
-    def default(self):
-        pass
+
+class DirectoryDecoder(json.JSONDecoder):
+    def __init__(self, *args, **kwargs):
+        json.JSONDecoder.__init__(self, object_hook=self.object_hook, *args, **kwargs)
+    def object_hook(self, obj):
+
+        keys = list(obj.keys())
+        # if it is a directory return a directory class
+        if "directories" in keys:
+            directories = obj.get("directories")
+            clips = obj.get("clips")
+            obj_clips = []
+
+            for clip in clips:
+                obj_clips.append(Clip(clip.get("id"), clip.get("name"), clip.get("edited"), clip.get("uploaded")))
+
+
+            if len(directories) == 0:
+                return Directory(obj.get("id"), obj.get("name"),[],obj_clips)
+
+            return Directory(obj.get("id"), obj.get("name"),directories,obj_clips)
+        return obj
+
+
+
+
+
+
 
 
 
@@ -195,8 +241,8 @@ def parse_raw_folder(folder):
 
 
 def test_dir():
-    dir = Directory("123", "nametop", [Directory("", "", [], []), Directory("", "", [], [])],
-                    [Clip("", "", False, False)])
+    dir = Directory("123", "nametop", [Directory("23", "", [], []), Directory("1234", "", [], [])],
+                    [Clip("4", "nigger", False, False)])
 
     fp = open("root.json", "w")
     json.dump(dir, fp, cls=DirectoryEncoder)
@@ -208,11 +254,12 @@ def test_dir():
 
 def test_load():
     fp = open("root.json", "r")
-    json.load(dir, fp, cls=DirectoryDecoder)
+    root = json.load(fp, cls=DirectoryDecoder)
     fp.close()
+    return root
 
 
 if __name__ == "__main__":
     test_dir()
-    test_load()
+    print(test_load())
 
