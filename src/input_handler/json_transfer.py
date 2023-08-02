@@ -22,9 +22,12 @@ def is_video(filename):
             return True
     return False
 
+
 '''
 TODO - finish __repr__() method
 '''
+
+
 class Directory:
     uploaded = False
 
@@ -34,23 +37,13 @@ class Directory:
         self.directories = directories
         self.clips = clips
 
-
-
     def __repr__(self):
-        str = ""
-
-        if len(self.directories) == 0:
-            return F'DIR(name: {self.name} directories: [], clips: {self.clips})'
-
-
-
+        return F'name: {self.name} \n clips: {self.clips} \n list:{self.directories}'
+    def get_children_names(self):
+        names = []
         for directory in self.directories:
-            str += "\__" +directory + "\n"
-            str += "|" + "\n"
-
-
-        return str
-        return F'DIR(name: {self.name} directories: {self.directories}, clips: {self.clips})'
+            names.append(directory.name)
+        return names
 
     def add_dir(self, dir):
         self.directories.append(dir)
@@ -58,8 +51,16 @@ class Directory:
     def add_clip(self, clip):
         self.clips.append(clip)
 
-    def set_uploaded(self, uploaded):
-        self.uploaded = uploaded
+    def is_uploaded(self):
+        for clip in self.clips:
+            if clip is not clip.uploaded:
+                return False
+
+        if len(self.directories) == 0:
+            return True
+
+        for directory in self.directories:
+            return directory.is_uploaded()
 
 
 class Clip:
@@ -71,6 +72,7 @@ class Clip:
 
     def __repr__(self):
         return F'name: {self.name} id:({self.id}) '
+
     def set_edited(self, edited):
         self.edited = edited
 
@@ -106,6 +108,7 @@ class DirectoryEncoder(json.JSONEncoder):
 class DirectoryDecoder(json.JSONDecoder):
     def __init__(self, *args, **kwargs):
         json.JSONDecoder.__init__(self, object_hook=self.object_hook, *args, **kwargs)
+
     def object_hook(self, obj):
 
         keys = list(obj.keys())
@@ -118,19 +121,11 @@ class DirectoryDecoder(json.JSONDecoder):
             for clip in clips:
                 obj_clips.append(Clip(clip.get("id"), clip.get("name"), clip.get("edited"), clip.get("uploaded")))
 
-
             if len(directories) == 0:
-                return Directory(obj.get("id"), obj.get("name"),[],obj_clips)
+                return Directory(obj.get("id"), obj.get("name"), [], obj_clips)
 
-            return Directory(obj.get("id"), obj.get("name"),directories,obj_clips)
+            return Directory(obj.get("id"), obj.get("name"), directories, obj_clips)
         return obj
-
-
-
-
-
-
-
 
 
 # class DirectoryDecoder(json.JSONDecoder):
@@ -187,12 +182,45 @@ for guides on implementing OAuth2 for the application.
 '''
 
 
+def generate_tree(parent, files, service):
+    page_token = None
+    if len(files) == 0:
+        return parent
+    for file in files:
+        (id, name) = parse_raw_folder(file)
+        if is_video(name):
+            clip = Clip(id, name, False, False)
+            parent.add_clip(clip)
+        else:
+            dir = Directory(id, name, [], [])
+            response = service.files().list(q=f"'{id}' in parents",
+                                            spaces='drive',
+                                            fields='nextPageToken, '
+                                                   'files(id, name)',
+                                            pageToken=page_token).execute()
+            to_add = generate_tree(dir, response.get('files', []), service)
+
+            parent.add_dir(to_add)
+    return parent
+
+'''TODO'''
+def is_new_episodes(files):
+    names = []
+    for file in files:
+        name = file.get("name")
+        names.append(name)
+
+
+
+
+
+
+
 def scan_main_directory():
     creds = quickstart.get_creds()
 
-
-
     try:
+        root = Directory(raw_shorts, "root", [], [])
         # create drive api client
         service = build('drive', 'v3', credentials=creds)
         files = []
@@ -205,15 +233,12 @@ def scan_main_directory():
                                                    'files(id, name)',
                                             pageToken=page_token).execute()
 
-            for file in response.get('files', []):
-                (id, name) = parse_raw_folder(file)
-                # if id not in uploaded_videos:
-                #     print(F'Found new clips: {file.get("name")}')
-                #     print(F'Processing and uploading new file')
-                #     # get all raw clips within a directory
-                #     clip_ids = find_clips(service, [id], [])
-                #     print(clip_ids)
-                #     # processed_clip_ids = process_clips(clips)
+            # Check all the files within raw shorts
+            is_new_episodes(response.get('files', []))
+            tree = generate_tree(root, response.get('files', []), service)
+            save_root(tree)
+
+
 
             files.extend(response.get('files', []))
             page_token = response.get('nextPageToken', None)
@@ -225,7 +250,6 @@ def scan_main_directory():
         files = None
 
     return files
-
 
 
 '''
@@ -240,19 +264,13 @@ def parse_raw_folder(folder):
     return (id, name)
 
 
-def test_dir():
-    dir = Directory("123", "nametop", [Directory("23", "", [], []), Directory("1234", "", [], [])],
-                    [Clip("4", "nigger", False, False)])
-
+def save_root(root):
     fp = open("root.json", "w")
-    json.dump(dir, fp, cls=DirectoryEncoder)
+    json.dump(root, fp, cls=DirectoryEncoder)
     fp.close()
 
 
-
-
-
-def test_load():
+def load_root():
     fp = open("root.json", "r")
     root = json.load(fp, cls=DirectoryDecoder)
     fp.close()
@@ -260,6 +278,4 @@ def test_load():
 
 
 if __name__ == "__main__":
-    test_dir()
-    print(test_load())
-
+    scan_main_directory()
