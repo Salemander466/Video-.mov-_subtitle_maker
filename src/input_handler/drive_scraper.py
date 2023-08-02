@@ -9,6 +9,17 @@ from quickstart import quickstart
 
 raw_shorts = "1rgRvJf2qwDypmFaMa67s2405qyMbUe__"
 
+video_formats = [".mov", ".mp4"]
+
+'''
+:return True if file is in a video format
+'''
+def is_video(filename):
+    for format in video_formats:
+        if filename.find(format) != -1:
+            return True
+    return False
+
 
 
 '''
@@ -16,16 +27,30 @@ TODO
 Input: id of the folder to look into
 Output: a list of clip ids inside the folder
 '''
-def find_clips(service, id):
+def find_clips(service, dir_list, video_ids):
+    if len(dir_list) == 0:
+        return video_ids
+
     page_token = None
-    response = service.files().list(q=f"'{id}' in parents",
+    dir_id = dir_list.pop(0) # pop from the dir stack
+    response = service.files().list(q=f"'{dir_id}' in parents",
                         spaces='drive',
                         fields='nextPageToken, '
                         'files(id, name)',
                         pageToken=page_token).execute()
 
+
     for file in response.get('files', []):
-        print(file.get("name"))
+        filename = file.get("name")
+        id = file.get("id")
+        if is_video(filename):
+            video_ids.append(id)
+        else:
+            dir_list.append(id)
+    find_clips(service, dir_list, video_ids)
+
+
+
 
 
 
@@ -37,7 +62,9 @@ Output: processed clip name
 def process_clips(clip_id):
     pass
 
-
+'''
+one iteration of checking for new clips
+'''
 def search_file():
     """Search file in drive location
 
