@@ -137,13 +137,17 @@ else:
 time.sleep(6)
 
 input_image_path7 = r"C:\Users\teams\Untitled Folder\insta_uploader_photos\logimageinsta.png"  # Update with the correct path
-string_to_paste = "the_new_www"  # Update with the string you want to paste
+
+#input username HERE
+string_to_paste = "Username"  # Update with the string you want to paste
 screenshot7 = find_and_click(input_image_path7, type_string=string_to_paste)
 
 time.sleep(2)
 
 input_image_path7 = r"C:\Users\teams\Untitled Folder\insta_uploader_photos\pasimageinsta.png"  # Update with the correct path
-string_to_paste = "1204Kobe"  # Update with the string you want to paste
+
+#input password HERE
+string_to_paste = "password"  # Update with the string you want to paste
 screenshot7 = find_and_click(input_image_path7, type_string=string_to_paste)
 
 time.sleep(2)
@@ -171,6 +175,10 @@ time.sleep(2)
 
 # Third image, click, type string, and press enter
 input_image_path3 = r"C:\Users\teams\Untitled Folder\insta_uploader_photos\3imageinsta.png"  # Update with the correct path
+
+
+
+#INPUT VIDEO HERE
 string_to_copy = r"C:\Users\teams\Untitled Folder\output_yellow.mov"  # Update with the correct string
 screenshot3 = find_and_click(input_image_path3, type_string=string_to_copy)
 
