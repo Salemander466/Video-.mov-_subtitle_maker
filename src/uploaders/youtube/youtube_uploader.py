@@ -1,27 +1,9 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# In[1]:
-
-
-get_ipython().system('pip install google-api-python-client google-auth-httplib2 google-auth-oauthlib')
-
-
-# In[2]:
-
-
-get_ipython().system('pip install openai')
-
-
-# In[8]:
-
-
 import os
 import google_auth_oauthlib.flow
 import googleapiclient.discovery
 import googleapiclient.errors
 import openai
-#print(string)
+# print(string)
 # Set your OpenAI API key
 openai.api_key = "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"
 # Set up your API credentials
@@ -131,12 +113,8 @@ print(generated_description)
     
     
     
-    
-    
-if __name__ == "__main__":
+def start_upload(file_path):
     service = get_authenticated_service()
-
-    file_path = "C:\\Users\\teams\\Untitled Folder\\output.mov"
 
     title = generated_title.split(":", 1)[1].strip() if ":" in generated_title else generated_title
     description = generated_description
@@ -144,7 +122,6 @@ if __name__ == "__main__":
     privacy_status = 'private'  # 'private', 'public', or 'unlisted'
 
     upload_video(service, file_path, title, description, category_id, privacy_status)
-
 
 # In[ ]:
 
