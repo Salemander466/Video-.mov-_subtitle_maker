@@ -3,6 +3,9 @@ from input_handler.drive.drive_downloader import download_file_from_google_drive
 
 import os
 
+from uploaders.youtube.youtube_uploader import start_upload
+
+
 # from uploaders.youtube.youtube_uploader import start_upload
 
 
@@ -26,9 +29,10 @@ class Buffer:
         if clip.youtube:
             self.upload_clip_youtube()
 
-        download_file_from_google_drive(clip.id, "raw_clip.mov")
-        clip_path = os.path + "raw_clip.mov"
+        filename = clip.name +".mov"
+        download_file_from_google_drive(clip.id, filename)
+        clip_path = os.getcwd() + "/" + filename
         print("Editing & Uploading: " + clip_path)
-        # start_upload(clip_path)
+        start_upload(clip_path)
         # set uploaded status to true
         clip.youtube = True

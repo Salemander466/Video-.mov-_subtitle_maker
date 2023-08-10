@@ -45,7 +45,7 @@ from moviepy.editor import TextClip, CompositeVideoClip, VideoFileClip
 from pydub import AudioSegment
 from pydub import effects
 
-os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "C:\\Users\\teams\\Downloads\\groovy-iris-393713-df88528a721f.json"
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "C:\\Users\\teams\\Downloads\\groovy_secret.json"
 
 def preprocess_audio(audio_path):
     # Load audio file

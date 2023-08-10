@@ -20,54 +20,40 @@ def is_video(filename):
 
 
 
-def find_clips(dir, all_clips):
-    clips = dir.clips
-    directories = dir.directories
-
-    if len(clips) != 0:
-        all_clips.extend(clips)
-
-    if len(directories) == 0:
-        return all_clips
-
-    for directory in directories:
-        all_clips.extend(find_clips(directory,all_clips))
-    return all_clips
 
 
 
 
-'''
-TODO
-Input: id of the folder to look into
-Output: a list of clip ids inside the folder
-'''
-def find_clips(service, dir_list, clips):
-    if len(dir_list) == 0:
-        print("all videos found!")
-        return clips
-
-    page_token = None
-    # pop from the dir stack
-    dir_id = dir_list.pop(0)
-    response = service.files().list(q=f"'{dir_id}' in parents",
-                                    spaces='drive',
-                                    fields='nextPageToken, '
-                                           'files(id, name)',
-                                    pageToken=page_token).execute()
-
-    for file in response.get('files', []):
-        filename = file.get("name")
-        id = file.get("id")
-        if is_video(filename):
-            print("appending video")
-            clips.append(Clip(id, filename))
-        else:
-            print("appending dir")
-            dir_list.append(id)
-
-    # recursively call find_clips until all directories have been checked.
-    return find_clips(service, dir_list, clips)
+# '''
+# Input: id of the folder to look into
+# Output: a list of clip ids inside the folder
+# '''
+# def find_clips(service, dir_list, clips):
+#     if len(dir_list) == 0:
+#         print("all videos found!")
+#         return clips
+#
+#     page_token = None
+#     # pop from the dir stack
+#     dir_id = dir_list.pop(0)
+#     response = service.files().list(q=f"'{dir_id}' in parents",
+#                                     spaces='drive',
+#                                     fields='nextPageToken, '
+#                                            'files(id, name)',
+#                                     pageToken=page_token).execute()
+#
+#     for file in response.get('files', []):
+#         filename = file.get("name")
+#         id = file.get("id")
+#         if is_video(filename):
+#             print("appending video")
+#             clips.append(Clip(id, filename))
+#         else:
+#             print("appending dir")
+#             dir_list.append(id)
+#
+#     # recursively call find_clips until all directories have been checked.
+#     return find_clips(service, dir_list, clips)
 
 
 '''TODO'''
@@ -110,12 +96,6 @@ def generate_tree(parent, files, service):
     return parent
 
 
-'''
-Input: id of the directory of the stored clips
-Output: 
-'''
-def queue_episode(id):
-    load
 
 
 def get_root():

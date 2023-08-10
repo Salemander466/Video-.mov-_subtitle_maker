@@ -10,10 +10,25 @@ class Directory:
     def __repr__(self):
         return F'name: {self.name} \nclips: {self.clips} \nlist:{self.directories}\n'
 
+    def find_clips(self, all_clips):
+        clips = self.clips
+        directories = self.directories
+
+        if len(clips) != 0:
+            all_clips.extend(clips)
+
+        if len(directories) == 0:
+            return all_clips
+
+        for directory in directories:
+            all_clips.extend(directory.find_clips(all_clips))
+        return all_clips
+
     def get_children_names(self):
         names = []
         for directory in self.directories:
-            names.append(directory.name)
+            name = directory.name
+            names.append(name)
         return names
 
     def add_dir(self, dir):
@@ -33,7 +48,7 @@ class Directory:
 
     def is_uploaded(self):
         for clip in self.clips:
-            if clip is not clip.uploaded:
+            if clip is not clip.youtube:
                 return False
 
         if len(self.directories) == 0:

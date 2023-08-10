@@ -3,11 +3,14 @@ import google_auth_oauthlib.flow
 import googleapiclient.discovery
 import googleapiclient.errors
 import openai
+
+from video_editor.video_sub_maker_V2_single import edit_video
+
 # print(string)
 # Set your OpenAI API key
-openai.api_key = "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"
+openai.api_key = "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"
 # Set up your API credentials
-CLIENT_SECRETS_FILE = "C:\\Users\\teams\\Downloads\\client_secret_714872599520-4fu4u56gt21n95236q5vl9uimdm6vqii.apps.googleusercontent.com.json"
+CLIENT_SECRETS_FILE = os.getcwd() + "/secrets/c_secret.json"
 
 SCOPES = ['https://www.googleapis.com/auth/youtube.upload']
 API_SERVICE_NAME = 'youtube'
@@ -61,7 +64,7 @@ def read_srt_file(file_path):
     return combined_string
 
 # Main program
-srt_file_path = r"C:\Users\teams\Untitled Folder\output.srt"  # Replace with your SRT file path
+srt_file_path = os.getcwd() + "/srt/output.srt"  # Replace with your SRT file path
 string = read_srt_file(srt_file_path)
 
     
@@ -77,7 +80,7 @@ def generate_title(prompt,Hostname,Guestname):
         messages=[
             {"role": "system", "content": "Create a clicbate youtube video title using podcast clips transcript. Make sound intresting"},
             {"role": "user", "content": prompt.lower()},
-            {"role": "assistant", "content": "Host name = {}, Guest name{}".format(Hostname,Guestname)}
+            {"role": "assistant", "content": "Host name = {}, Guest name{},podcast name = The Shawn Ryan Show".format(Hostname,Guestname)}
         ]
     )
 
@@ -113,15 +116,17 @@ print(generated_description)
     
     
     
-def start_upload(file_path):
+def start_upload(abs_video_path):
+    edit_video(abs_video_path)
+
     service = get_authenticated_service()
 
     title = generated_title.split(":", 1)[1].strip() if ":" in generated_title else generated_title
     description = generated_description
     category_id = '22'  # See YouTube API documentation for category IDs
     privacy_status = 'private'  # 'private', 'public', or 'unlisted'
-
-    upload_video(service, file_path, title, description, category_id, privacy_status)
+    output_file_path = os.getcwd() + "/video_out/output.mov"
+    upload_video(service, output_file_path, title, description, category_id, privacy_status)
 
 # In[ ]:
 
