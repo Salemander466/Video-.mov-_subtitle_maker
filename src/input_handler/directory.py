@@ -7,6 +7,7 @@ class Directory:
         self.directories = directories
         self.clips = clips
 
+
     def __repr__(self):
         return F'name: {self.name} \nclips: {self.clips} \nlist:{self.directories}\n'
 

@@ -1,3 +1,4 @@
+import json
 import os
 import google_auth_oauthlib.flow
 import googleapiclient.discovery
@@ -8,7 +9,15 @@ from video_editor.video_sub_maker_V2_single import edit_video
 
 # print(string)
 # Set your OpenAI API key
-openai.api_key = "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"
+
+def get_key(rel_path, key):
+    fp = open(os.getcwd() + rel_path, "r")
+    dict_key = json.load(fp)
+    return dict_key[key]
+
+
+# ONLY WORKS FROM main.py
+openai.api_key = get_key("/secrets/openai.json","key")
 # Set up your API credentials
 CLIENT_SECRETS_FILE = os.getcwd() + "/secrets/c_secret.json"
 
@@ -17,9 +26,6 @@ API_SERVICE_NAME = 'youtube'
 API_VERSION = 'v3'
 
 
-#Change name base on vidoe
-Hostname = "Shawn Ryan"
-Guestname = "Mark Zuck"
 
 def get_authenticated_service():
     flow = google_auth_oauthlib.flow.InstalledAppFlow.from_client_secrets_file(
@@ -47,7 +53,14 @@ def upload_video(youtube, file_path, title, description, category_id, privacy_st
     )
 
     response = videos_insert_request.execute()
-    print(f"Video '{response['snippet']['title']}' was successfully uploaded.")
+    print(response)
+
+    if response['status'] ['uploadStatus'] == 'uploaded':
+        print(f"Video '{response['snippet']['title']}' was successfully uploaded.")
+    else:
+        print(f"something went wrong/")
+
+
 
     
     
@@ -74,13 +87,12 @@ string = read_srt_file(srt_file_path)
 
 
 
-def generate_title(prompt,Hostname,Guestname):
+def generate_title(prompt):
     response = openai.ChatCompletion.create(
         model="gpt-3.5-turbo",
         messages=[
             {"role": "system", "content": "Create a clicbate youtube video title using podcast clips transcript. Make sound intresting"},
-            {"role": "user", "content": prompt.lower()},
-            {"role": "assistant", "content": "Host name = {}, Guest name{},podcast name = The Shawn Ryan Show".format(Hostname,Guestname)}
+            {"role": "user", "content": prompt.lower()}
         ]
     )
 
@@ -88,14 +100,14 @@ def generate_title(prompt,Hostname,Guestname):
     return reply
 
 
-def generate_description(prompt,Hostname,Guestname):
+def generate_description(prompt, hostname, guestname):
     response = openai.ChatCompletion.create(
         model="gpt-3.5-turbo",
         max_tokens=150,
         messages=[
             {"role": "system", "content": "Create a video description using podcast clip transcript. Make it catchy"},
             {"role": "user", "content": prompt.lower()},
-            {"role": "assistant", "content": "Host name = {}, Guest name{}".format(Hostname,Guestname)}
+            {"role": "assistant", "content": "Host name = {}, Guest name{}".format(hostname,guestname)}
         ]
     )
 
@@ -104,7 +116,7 @@ def generate_description(prompt,Hostname,Guestname):
 
 # Example usage:
 user_input = string
-generated_title = generate_title(user_input,Hostname, Guestname)
+generated_title = generate_title(user_input)
 generated_description = generate_description(user_input,"Shawn Ryan", "Mark Zuck")
 
 print("\nGenerated Title:")
@@ -123,9 +135,10 @@ def start_upload(abs_video_path):
 
     title = generated_title.split(":", 1)[1].strip() if ":" in generated_title else generated_title
     description = generated_description
-    category_id = '22'  # See YouTube API documentation for category IDs
-    privacy_status = 'private'  # 'private', 'public', or 'unlisted'
+    category_id = '22' # See YouTube API documentation for category IDs
+    privacy_status = 'private' # 'private', 'public', or 'unlisted'
     output_file_path = os.getcwd() + "/video_out/output.mov"
+    os.remove(abs_video_path)
     upload_video(service, output_file_path, title, description, category_id, privacy_status)
 
 # In[ ]:

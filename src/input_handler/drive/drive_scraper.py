@@ -18,12 +18,6 @@ def is_video(filename):
             return True
     return False
 
-
-
-
-
-
-
 # '''
 # Input: id of the folder to look into
 # Output: a list of clip ids inside the folder
@@ -65,14 +59,7 @@ def is_new_episodes(files):
 
 
 '''
-one iteration of checking for new clips
-
-Search file in drive location
-
-Load pre-authorized user credentials from the environment.
-TODO(developer) - See https://developers.google.com/identity
-for guides on implementing OAuth2 for the application.
-
+generates the whole directory tree
 '''
 def generate_tree(parent, files, service):
     page_token = None
@@ -95,18 +82,21 @@ def generate_tree(parent, files, service):
             parent.add_dir(to_add)
     return parent
 
+'''
+root_lock: variable passed from main() to perform thread-safe operations on root
+update=True: updates the root.json file (append mode)
+update=False: creates a new root.json file (write mode)
+'''
+def scan_main_directory(root_lock, update=True):
 
-
-
-def get_root():
-    root = load_root()
-    root.directories
-
-def scan_main_directory():
     creds = quickstart.get_creds()
 
     try:
-        root = Directory(raw_shorts, "root", [], [])
+        root_lock.acquire() # acquire lock before reading root.
+        if update:
+            root = load_root()
+        else:
+            root = Directory(raw_shorts, "root", [], [])
         # create drive api client
         service = build('drive', 'v3', credentials=creds)
         files = []
@@ -119,10 +109,9 @@ def scan_main_directory():
                                                    'files(id, name)',
                                             pageToken=page_token).execute()
 
-            # Check all the files within raw shorts
-            is_new_episodes(response.get('files', []))
             tree = generate_tree(root, response.get('files', []), service)
             save_root(tree)
+            root_lock.release() # release lock after saving root
 
             files.extend(response.get('files', []))
             page_token = response.get('nextPageToken', None)

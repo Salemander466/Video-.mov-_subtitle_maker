@@ -23,7 +23,7 @@ class DirectoryEncoder(json.JSONEncoder):
             return {"id": obj.id, "name": obj.name, "directories": json_dirs, "clips": json_clips}
 
         if isinstance(obj, Clip):
-            return {"id": obj.id, "name": obj.name, "edited": obj.edited, "uploaded": obj.uploaded}
+            return {"id": obj.id, "name": obj.name, "youtube": obj.youtube, "instagram": obj.instagram}
 
         return super().default
 
@@ -42,7 +42,7 @@ class DirectoryDecoder(json.JSONDecoder):
             obj_clips = []
 
             for clip in clips:
-                obj_clips.append(Clip(clip.get("id"), clip.get("name"), clip.get("edited"), clip.get("uploaded")))
+                obj_clips.append(Clip(clip.get("id"), clip.get("name"), clip.get("youtube"), clip.get("instagram")))
 
             if len(directories) == 0:
                 return Directory(obj.get("id"), obj.get("name"), [], obj_clips)

@@ -21,13 +21,13 @@ class Buffer:
 
     def upload_clip_youtube(self):
         if len(self.clips) == 0:
-            return
+            return False
 
         clip = self.clips.pop(0)
 
         # if already uploaded, upload the next one in queue.
         if clip.youtube:
-            self.upload_clip_youtube()
+            return False
 
         filename = clip.name +".mov"
         download_file_from_google_drive(clip.id, filename)
@@ -36,3 +36,4 @@ class Buffer:
         start_upload(clip_path)
         # set uploaded status to true
         clip.youtube = True
+        return True
